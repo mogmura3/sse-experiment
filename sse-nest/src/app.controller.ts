@@ -13,7 +13,7 @@ export class AppController {
   sse(): Observable<MessageEvent> {
     return interval(1000).pipe(
       map((_) => {
-        const largeData = this.generateLargeData(100000);
+        const largeData = this.generateLargeData(10);
         return ({ data: largeData } as MessageEvent)
       })
     );
@@ -27,12 +27,19 @@ export class AppController {
       'Connection': 'keep-alive'
     });
 
-    const intervalSubscription = interval(1000).pipe(
+
+
+    const intervalSubscription = interval(1).pipe(
       map((_) => {
-        const largeData = this.generateLargeData(100000);
+        const largeData = this.generateLargeData(10);
         return `data: ${JSON.stringify(largeData)}\n\n`;
       })
     ).subscribe((data) => response.write(data));
+
+    response.once('drain', () => {
+      console.log('------------------ Drain event fired, resuming writing...');
+
+    })
 
     response.on('close', () => {
       intervalSubscription.unsubscribe();
